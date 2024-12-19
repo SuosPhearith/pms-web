@@ -19,7 +19,7 @@ const Login = () => {
           defaultMessage: '登录成功！',
         });
         message.success(defaultLoginSuccessMessage);
-        window.location.href = "/"
+        window.location.href = "/todo"
         return;
       }
     } catch (error: any) {

@@ -11,7 +11,7 @@ interface EntryFormProps {
     current?: UserFormValues;
   };
 }
-const style: React.CSSProperties = { padding: '8px 0' };
+export const style: React.CSSProperties = { padding: '8px 0' };
 
 const EntryForm: React.FC<EntryFormProps> = ({ isModalOpen, handleOk, handleCancel, data }) => {
   return (

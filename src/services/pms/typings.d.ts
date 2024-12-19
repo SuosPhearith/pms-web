@@ -66,6 +66,22 @@ export interface UserFormValues {
   role: 'ADMIN' | 'MANAGER' | 'DEVELOPER';
 }
 
+export interface UserResetPassword {
+  id : number;
+  password : string;
+  password2: string;
+}
+
+export interface TodoUpdateStatus {
+  taskId : number;
+  status : 'pending' | 'InProgress' | 'done';
+}
+export interface TodoCreateRemark {
+  taskId : number;
+  remark_status : string;
+  remark_note : string;
+}
+
 // ::::::::::: End From :::::::::::
 
 

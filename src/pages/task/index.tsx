@@ -209,13 +209,6 @@ const TasksTable = () => {
             render: (_, __, index) => <div>{index + 1}</div>,
           },
           {
-            title: 'Project',
-            dataIndex: 'project_name',
-            valueType: 'text',
-            sorter: true,
-            render: (_, record) => <div>{record.project?.name}</div>,
-          },
-          {
             title: 'Task',
             dataIndex: 'name',
             valueType: 'text',
@@ -227,6 +220,14 @@ const TasksTable = () => {
               />
             ),
           },
+          {
+            title: 'Project',
+            dataIndex: 'project_name',
+            valueType: 'text',
+            sorter: true,
+            render: (_, record) => <div>{record.project?.name}</div>,
+          },
+          
           {
             title: 'Stage',
             dataIndex: 'stage',
@@ -264,13 +265,12 @@ const TasksTable = () => {
             dataIndex: 'due_at',
             valueType: 'dateTime',
             sorter: true,
-            renderText: (value) => dayjs(value).format('YYYY-MM-DD HH:mm:ss'),
 
           },
           {
             title: 'Submited At',
             dataIndex: 'submited_at',
-            valueType: 'text',
+            valueType: 'dateTime',
             sorter: true,
           },
           {

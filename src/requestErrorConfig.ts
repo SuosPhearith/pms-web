@@ -74,6 +74,11 @@ export const errorConfig: RequestConfig = {
         // Axios 的错误
         // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
         console.log(`Response status:${error.response.status}`);
+        if(error.response.status === 401 || error.response.status === 403){
+          window.localStorage.removeItem('access')
+          window.localStorage.removeItem('refresh')
+          window.location.href = '/auth/login'
+        }
       } else if (error.request) {
         // 请求已经成功发起，但没有收到响应
         // \`error.request\` 在浏览器中是 XMLHttpRequest 的实例，

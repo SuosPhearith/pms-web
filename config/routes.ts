@@ -42,6 +42,12 @@ export default [
     icon: 'User',
     component: './user',
   },
+  {
+    path: '/todo',
+    name: 'Todo',
+    icon: 'diff',
+    component: './todo',
+  },
   // {
   //   path: '/admin',
   //   name: 'admin',

@@ -86,6 +86,17 @@ export async function updateUser(body: API.UserFormValues, options?: { [key: str
   });
 }
 
+export async function resetUser(body: API.UserResetPassword, options?: { [key: string]: any }) {
+  return request<any>('/api/user/update/', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 // :::::::::::: End User ::::::::::::
 
 
@@ -152,6 +163,32 @@ export async function optionDevelopers(options?: { [key: string]: any }) {
 }
 
 
+
+// :::::::::::: End Option ::::::::::::
+
+// :::::::::::: End Option ::::::::::::
+
+export async function updateTodoStatus(body: API.TodoUpdateStatus, options?: { [key: string]: any }) {
+  return request<any>(`/api/todo/update/`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function createRemark(body: API.TodoCreateRemark, options?: { [key: string]: any }) {
+  return request<any>(`/api/todo/update/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
 
 // :::::::::::: End Option ::::::::::::
 

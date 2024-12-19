@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
-import { ActionType, ProTable } from '@ant-design/pro-components';
-import { Button, Input } from 'antd';
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { ActionType, ModalForm, ProFormText, ProTable } from '@ant-design/pro-components';
+import { Button, Col, Input, Row } from 'antd';
+import { DeleteOutlined, PlusOutlined, UnlockOutlined } from '@ant-design/icons';
 import { requestList } from '@/services/api/request';
-import API, { UserFormValues } from '@/services/pms/typings';
-import { createUser, deleteBulkProject, updateUser } from '@/services/pms/api';
+import API, { UserFormValues, UserResetPassword } from '@/services/pms/typings';
+import { createUser, deleteBulkProject, resetUser, updateUser } from '@/services/pms/api';
 import { Modal, message } from 'antd';
 import Open from '@/components/Usable/Open';
-import EntryForm from './EntryForm';
+import EntryForm, { style } from './EntryForm';
 
 const UserTable = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [openReset, setOpenReset] = useState<{
+    open: boolean;
+    id: number;
+  }>({
+    open: false,
+    id: 0,
+  });
   const [data, setData] = useState<{
     current?: UserFormValues;
   }>({ current: undefined });
@@ -43,8 +50,7 @@ const UserTable = () => {
           message.success('Project saved successfully!');
           handleCancel();
           actionRef.current?.reload(); // Reload the table or data
-        } catch ({ response } : any) {
-            // console.log(response.data.email.at(0))
+        } catch ({ response }: any) {
           message.error(response.data.email.at(0));
         }
       },
@@ -75,6 +81,38 @@ const UserTable = () => {
         message.info('Project delete canceled.');
       },
     });
+  };
+
+  const handleResetPassword = (value: UserResetPassword) => {
+    if (value.password !== value.password2) {
+      return message.error('Confirm password not match.');
+    }
+    if (!openReset.id || openReset.id === 0) {
+      return message.error('Id of user required.');
+    }
+    Modal.confirm({
+      title: 'Please Confirm',
+      content: 'Are you sure you want to reset password?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await resetUser({...value, id: openReset.id});
+          message.success('Reset successfully!');
+          setOpenReset({open : false, id : 0});
+          actionRef.current?.reload();
+        } catch (error) {
+          message.error('Failed. Please try again.');
+        }
+      },
+      onCancel: () => {
+        message.info('Project delete canceled.');
+      },
+    });
+  };
+
+  const handleOpenReset = (id: number) => {
+    setOpenReset({open: true, id})
   };
 
   const handleUpdate = (record: UserFormValues) => {
@@ -148,6 +186,19 @@ const UserTable = () => {
             valueType: 'dateTime',
             sorter: true,
           },
+          {
+            title: 'Action',
+            dataIndex: '',
+            render: (_, record) => (
+              <div>
+                <UnlockOutlined
+                  style={{ cursor: 'pointer', color: 'blue' }}
+                  title="Reset password"
+                  onClick={() => handleOpenReset(record.id)}
+                />
+              </div>
+            ),
+          },
         ]}
         pagination={{
           showQuickJumper: true,
@@ -180,6 +231,53 @@ const UserTable = () => {
         handleCancel={handleCancel}
         data={data}
       />
+      <ModalForm<UserResetPassword>
+        title="Reset password"
+        open={openReset.open}
+        modalProps={{
+          destroyOnClose: true,
+          onCancel: () => setOpenReset({open : false, id : 0}),
+        }}
+        onFinish={async (values) => {
+          handleResetPassword(values);
+          return true;
+        }}
+      >
+        <Row gutter={20}>
+          <Col className="gutter-row" span={12}>
+            <div style={style}>
+              <ProFormText
+                name="password"
+                label="Password"
+                placeholder="Enter your password"
+                rules={[
+                  { required: true, message: 'Password is required' },
+                  { min: 6, message: 'Password is too short.' },
+                ]}
+                fieldProps={{
+                  type: 'password',
+                }}
+              />
+            </div>
+          </Col>
+          <Col className="gutter-row" span={12}>
+            <div style={style}>
+              <ProFormText
+                name="password2"
+                label="Confirm Password"
+                placeholder="Enter your Confirm Password"
+                rules={[
+                  { required: true, message: 'Confirm Password is required' },
+                  { min: 6, message: 'Password is too short.' },
+                ]}
+                fieldProps={{
+                  type: 'password',
+                }}
+              />
+            </div>
+          </Col>
+        </Row>
+      </ModalForm>
     </>
   );
 };
