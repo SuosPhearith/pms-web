@@ -6,10 +6,16 @@
 
 import React, { useEffect, useState } from 'react';
 import { ActionType, ProTable } from '@ant-design/pro-components';
-import { DatePicker, Drawer, Input, Radio, Select, Space } from 'antd';
+import { Button, Drawer, Input, Radio, Select, Space } from 'antd';
 import { requestList } from '@/services/api/request';
-import API, { TaskFormValues } from '@/services/pms/typings';
-import { createTask, optionDevelopers, optionProjects, updateTask } from '@/services/pms/api';
+import API, { ProjectFormValues, TaskFormValues } from '@/services/pms/typings';
+import {
+  createTask,
+  deleteBulkTask,
+  optionDevelopers,
+  optionProjects,
+  updateTask,
+} from '@/services/pms/api';
 import { Modal, message } from 'antd';
 import Open from '@/components/Usable/Open';
 import { RadioChangeEvent } from 'antd/lib';
@@ -18,9 +24,10 @@ import EntryForm from './EntryForm';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { useParams } from '@umijs/max';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 
 const TasksTable = () => {
-  // const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [open, setOpen] = useState<{ open: boolean; data: any }>({ open: false, data: {} });
   const [status, setStatus] = useState<string>();
@@ -35,8 +42,6 @@ const TasksTable = () => {
   const [searchKey, setSearchKey] = useState('');
   const { Search } = Input;
   const actionRef = React.useRef<ActionType>();
-  const { RangePicker } = DatePicker;
-
   dayjs.extend(utc);
 
   const handleCancel = () => {
@@ -74,37 +79,37 @@ const TasksTable = () => {
     });
   };
 
-  // const handleBulkDelete = async () => {
-  //   Modal.confirm({
-  //     title: 'Please Confirm',
-  //     content: 'Are you sure you want to delete this Task?',
-  //     okText: 'Yes',
-  //     cancelText: 'No',
-  //     onOk: async () => {
-  //       try {
-  //         await deleteBulkTask({ ids: selectedIds });
-  //         setSelectedIds([]);
-  //         message.success('Task created successfully!');
-  //         handleCancel();
-  //         actionRef.current?.reload();
-  //       } catch (error) {
-  //         message.error('Failed to delete Task. Please try again.');
-  //       }
-  //     },
-  //     onCancel: () => {
-  //       message.info('Task delete canceled.');
-  //     },
-  //   });
-  // };
+  const handleBulkDelete = async () => {
+    Modal.confirm({
+      title: 'Please Confirm',
+      content: 'Are you sure you want to delete this Task?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await deleteBulkTask({ ids: selectedIds });
+          setSelectedIds([]);
+          message.success('Task created successfully!');
+          handleCancel();
+          actionRef.current?.reload();
+        } catch (error) {
+          message.error('Failed to delete Task. Please try again.');
+        }
+      },
+      onCancel: () => {
+        message.info('Task delete canceled.');
+      },
+    });
+  };
 
-  // const handleUpdate = (record: any) => {
-  //   console.log(record);
-  //   setData({
-  //     ...data,
-  //     current: { ...record, assigned_to: record.assigned_to?.id, project: record.project?.id },
-  //   });
-  //   setIsModalOpen(true);
-  // };
+  const handleUpdate = (record: any) => {
+    console.log(record);
+    setData({
+      ...data,
+      current: { ...record, assigned_to: record.assigned_to?.id, project: record.project?.id },
+    });
+    setIsModalOpen(true);
+  };
 
   const getOptions = async () => {
     try {
@@ -114,7 +119,7 @@ const TasksTable = () => {
         setProjectId(undefined);
       }
       const projectOptions = await optionProjects();
-      const developersOptions = await optionDevelopers();
+      const developersOptions = await optionDevelopers({ projectId: 41 });
       setData({ ...data?.current, projects: projectOptions, developers: developersOptions });
     } catch (error) {
       message.error('Something went wrong!');
@@ -128,23 +133,6 @@ const TasksTable = () => {
 
   const handleStatusChange = (e: RadioChangeEvent) => {
     setStatus(e.target.value);
-    actionRef.current?.reload();
-  };
-
-  const [startDate, setStartDate] = useState<string>();
-  const [endDate, setEndDate] = useState<string>();
-  const handleFilterDate = (
-    dates: [dayjs.Dayjs | null, dayjs.Dayjs | null],
-    dateStrings: [string, string],
-  ) => {
-    if (dates) {
-      const [startDate, endDate] = dateStrings;
-      setStartDate(startDate);
-      setEndDate(endDate);
-    } else {
-      setStartDate('');
-      setEndDate('');
-    }
     actionRef.current?.reload();
   };
 
@@ -190,7 +178,7 @@ const TasksTable = () => {
                   optionFilterProp="label"
                   onChange={onChange}
                   options={data.projects}
-                  style={{ minWidth: '150px' }}
+                  style={{ minWidth: '200px' }}
                 />
               ) : (
                 ''
@@ -208,7 +196,7 @@ const TasksTable = () => {
                   { label: 'Testing', value: 'Testing' },
                   { label: 'Launch', value: 'Launch' },
                 ]}
-                style={{ minWidth: '150px' }}
+                style={{ minWidth: '200px' }}
               />
               <Radio.Group value={status} onChange={handleStatusChange}>
                 <Radio.Button value="">All</Radio.Button>
@@ -216,7 +204,6 @@ const TasksTable = () => {
                 <Radio.Button value="InProgress">In Progress</Radio.Button>
                 <Radio.Button value="done">Done</Radio.Button>
               </Radio.Group>
-              <RangePicker onChange={handleFilterDate as any} />
             </Space>
           </div>
         }
@@ -228,13 +215,7 @@ const TasksTable = () => {
             '/api/task/tasks-view/',
             params,
             sort,
-            {
-              project: projectId,
-              status: status,
-              stage: stage,
-              due_at_after: startDate,
-              due_at_before: endDate,
-            },
+            { project: projectId, status: status, stage: stage },
             searchKey,
           )
         }
@@ -250,17 +231,18 @@ const TasksTable = () => {
             dataIndex: 'name',
             valueType: 'text',
             sorter: true,
-            // render: (_, record) => (
-            //   <Open
-            //     onClick={() => handleUpdate(record as ProjectFormValues)}
-            //     record={record.name}
-            //   />
-            // ),
+            render: (_, record) => (
+              <Open
+                onClick={() => handleUpdate(record as ProjectFormValues)}
+                record={record.name}
+              />
+            ),
           },
           {
             title: 'Project',
             dataIndex: 'project_name',
             valueType: 'text',
+            sorter: true,
             render: (_, record) => <div>{record.project?.name}</div>,
           },
 
@@ -350,27 +332,27 @@ const TasksTable = () => {
         pagination={{
           showQuickJumper: true,
         }}
-        // toolBarRender={() => [
-        //   <Button
-        //     key="primary"
-        //     type="primary"
-        //     icon={<PlusOutlined />}
-        //     onClick={() => setIsModalOpen(true)}
-        //   />,
-        //   <Button
-        //     disabled={selectedIds.length === 0}
-        //     key="danger"
-        //     type="primary"
-        //     danger
-        //     onClick={() => handleBulkDelete()}
-        //     icon={<DeleteOutlined />}
-        //   />,
-        // ]}
-        // rowSelection={{
-        //   onChange: (_, selectedRows) => {
-        //     setSelectedIds(selectedRows.map((row) => row.id));
-        //   },
-        // }}
+        toolBarRender={() => [
+          <Button
+            key="primary"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalOpen(true)}
+          />,
+          <Button
+            disabled={selectedIds.length === 0}
+            key="danger"
+            type="primary"
+            danger
+            onClick={() => handleBulkDelete()}
+            icon={<DeleteOutlined />}
+          />,
+        ]}
+        rowSelection={{
+          onChange: (_, selectedRows) => {
+            setSelectedIds(selectedRows.map((row) => row.id));
+          },
+        }}
       />
       <EntryForm
         isModalOpen={isModalOpen}

@@ -15,6 +15,7 @@ interface EntryFormProps {
   handleCancel: () => void;
   data?: {
     managers: API.OptionValue[];
+    developers: API.OptionValue[];
     current?: ProjectFormValues;
   };
 }
@@ -23,7 +24,7 @@ const style: React.CSSProperties = { padding: '8px 0' };
 const EntryForm: React.FC<EntryFormProps> = ({ isModalOpen, handleOk, handleCancel, data }) => {
   return (
     <ModalForm<ProjectFormValues>
-      title="Create new Project"
+      title="Project"
       open={isModalOpen}
       onFinish={async (values) => {
         handleOk(values);
@@ -165,8 +166,16 @@ const EntryForm: React.FC<EntryFormProps> = ({ isModalOpen, handleOk, handleCanc
             />
           </div>
         </Col>
-        <Col className="gutter-row" span={6}>
-          <div style={style}></div>
+        <Col className="gutter-row" span={24}>
+          <div style={style}>
+            <ProFormSelect
+              name="dev_ids"
+              mode="multiple"
+              label="Developers"
+              options={data?.developers}
+              placeholder="Select Developers"
+            />
+          </div>
         </Col>
       </Row>
     </ModalForm>

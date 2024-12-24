@@ -23,7 +23,6 @@ export async function currentUser(options?: { [key: string]: any }) {
 
 // :::::::::::: End Auth ::::::::::::
 
-
 // :::::::::::::: Project ::::::::::::::
 
 export async function createProject(body: API.ProjectFormValues, options?: { [key: string]: any }) {
@@ -48,7 +47,21 @@ export async function updateProject(body: API.ProjectFormValues, options?: { [ke
   });
 }
 
-export async function deleteBulkProject(body: API.DeleteBulk, options?: { [key: string]: any }){
+export async function updateProjectProgress(
+  body: API.ProjectMangerFormValues,
+  options?: { [key: string]: any },
+) {
+  return request<any>(`/api/project/update-progress/`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function deleteBulkProject(body: API.DeleteBulk, options?: { [key: string]: any }) {
   return request<any>('/api/project/projects/bulk-delete/', {
     method: 'DELETE',
     headers: {
@@ -60,7 +73,6 @@ export async function deleteBulkProject(body: API.DeleteBulk, options?: { [key: 
 }
 
 // :::::::::::: End Project ::::::::::::
-
 
 // :::::::::::: End User ::::::::::::
 
@@ -99,7 +111,6 @@ export async function resetUser(body: API.UserResetPassword, options?: { [key: s
 
 // :::::::::::: End User ::::::::::::
 
-
 // :::::::::::: End Task :::::::::::::::
 
 export async function createTask(body: API.TaskFormValues, options?: { [key: string]: any }) {
@@ -124,7 +135,7 @@ export async function updateTask(body: API.TaskFormValues, options?: { [key: str
   });
 }
 
-export async function deleteBulkTask(body: API.DeleteBulk, options?: { [key: string]: any }){
+export async function deleteBulkTask(body: API.DeleteBulk, options?: { [key: string]: any }) {
   return request<any>('/api/task/tasks/bulk-delete/', {
     method: 'DELETE',
     headers: {
@@ -135,9 +146,7 @@ export async function deleteBulkTask(body: API.DeleteBulk, options?: { [key: str
   });
 }
 
-
 // :::::::::::: End Task :::::::::::::::
-
 
 // :::::::::::: End Option :::::::::::::
 
@@ -155,20 +164,24 @@ export async function optionProjects(options?: { [key: string]: any }) {
   });
 }
 
-export async function optionDevelopers(options?: { [key: string]: any }) {
-  return request<API.OptionValue[]>('/api/option/list-developers/', {
+export async function optionDevelopers(
+  body?: { projectId: number },
+  options?: { [key: string]: any },
+) {
+  return request<API.OptionValue[]>(`/api/option/list-developers/?projectId=${body?.projectId || ''}`, {
     method: 'GET',
     ...(options || {}),
   });
 }
 
-
-
 // :::::::::::: End Option ::::::::::::
 
-// :::::::::::: End Option ::::::::::::
+// :::::::::::: End Todo ::::::::::::
 
-export async function updateTodoStatus(body: API.TodoUpdateStatus, options?: { [key: string]: any }) {
+export async function updateTodoStatus(
+  body: API.TodoUpdateStatus,
+  options?: { [key: string]: any },
+) {
   return request<any>(`/api/todo/update/`, {
     method: 'PUT',
     headers: {
@@ -190,5 +203,4 @@ export async function createRemark(body: API.TodoCreateRemark, options?: { [key:
   });
 }
 
-// :::::::::::: End Option ::::::::::::
-
+// :::::::::::: End Todo ::::::::::::

@@ -1,5 +1,6 @@
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { SelectLang as UmiSelectLang } from '@umijs/max';
+import { message } from 'antd';
 import React from 'react';
 
 export type SiderTheme = 'light' | 'dark';
@@ -22,7 +23,7 @@ export const Question = () => {
         height: 26,
       }}
       onClick={() => {
-        window.open('https://pro.ant.design/docs/getting-started');
+        message.info("Please Contact to Admin.")
       }}
     >
       <QuestionCircleOutlined />

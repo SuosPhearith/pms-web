@@ -1,17 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ActionType, ProTable } from '@ant-design/pro-components';
-import { Button, Input, Radio, Space } from 'antd';
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Input, Radio, Space } from 'antd';
 import { requestList } from '@/services/api/request';
 import EntryForm from './EntryForm';
-import API, { ProjectFormValues } from '@/services/pms/typings';
-import {
-  createProject,
-  deleteBulkProject,
-  optionDevelopers,
-  optionManagers,
-  updateProject,
-} from '@/services/pms/api';
+import API, { ProjectMangerFormValues } from '@/services/pms/typings';
+import { updateProjectProgress } from '@/services/pms/api';
 import { Modal, message } from 'antd';
 import Open from '@/components/Usable/Open';
 import StatusTag from '@/components/Usable/StatusTag';
@@ -20,14 +13,11 @@ import { useNavigate } from '@umijs/max';
 import { RadioChangeEvent } from 'antd/lib';
 
 const ProductsTable = () => {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [status, setStatus] = useState<string>();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>();
   const [data, setData] = useState<{
-    managers: API.OptionValue[];
-    developers: API.OptionValue[];
-    current?: ProjectFormValues;
-  }>({ managers: [], developers: [], current: undefined });
+    current?: ProjectMangerFormValues;
+  }>({ current: undefined });
   const [searchKey, setSearchKey] = useState('');
   const { Search } = Input;
   const actionRef = React.useRef<ActionType>();
@@ -40,7 +30,7 @@ const ProductsTable = () => {
     setIsModalOpen(false);
   };
 
-  const handleOk = async (value: API.ProjectFormValues) => {
+  const handleOk = async (value: API.ProjectMangerFormValues) => {
     Modal.confirm({
       title: 'Please Confirm',
       content: 'Are you sure you want to save this project?',
@@ -48,11 +38,7 @@ const ProductsTable = () => {
       cancelText: 'No',
       onOk: async () => {
         try {
-          if (value.id) {
-            await updateProject(value);
-          } else {
-            await createProject(value);
-          }
+          await updateProjectProgress(value);
           message.success('Project saved successfully!');
           handleCancel();
           actionRef.current?.reload(); // Reload the table or data
@@ -66,61 +52,22 @@ const ProductsTable = () => {
     });
   };
 
-  const handleBulkDelete = async () => {
-    Modal.confirm({
-      title: 'Please Confirm',
-      content: 'Are you sure you want to delete this project?',
-      okText: 'Yes',
-      cancelText: 'No',
-      onOk: async () => {
-        try {
-          await deleteBulkProject({ ids: selectedIds });
-          setSelectedIds([]);
-          message.success('Project created successfully!');
-          handleCancel();
-          actionRef.current?.reload();
-        } catch (error) {
-          message.error('Failed to delete project. Please try again.');
-        }
-      },
-      onCancel: () => {
-        message.info('Project delete canceled.');
-      },
-    });
-  };
-
-  const handleUpdate = (record: ProjectFormValues) => {
-    console.log(record);
+  const handleUpdate = (record: ProjectMangerFormValues) => {
     setData({
       ...data,
-      managers: data?.managers || [],
-      current: { ...record, manager_id: record.manager.id },
+      current: { ...record },
     });
     setIsModalOpen(true);
   };
-
-  const getOptionMangers = async () => {
-    try {
-      const resManagers = await optionManagers();
-      const resDevelopers = await optionDevelopers();
-      setData({ ...data?.current, managers: resManagers, developers: resDevelopers });
-    } catch (error) {
-      message.error('Something went wrong!');
-    }
-  };
   const navigate = useNavigate();
-  const handleViewTasks = async (record: ProjectFormValues) => {
-    navigate(`/task/project/${record.id}`);
+  const handleViewTasks = async (record: ProjectMangerFormValues) => {
+    navigate(`/task/manager/project/${record.id}`);
   };
 
   const handleStatusChange = (e: RadioChangeEvent) => {
     setStatus(e.target.value);
     actionRef.current?.reload();
   };
-
-  useEffect(() => {
-    getOptionMangers();
-  }, []);
 
   return (
     <>
@@ -153,7 +100,7 @@ const ProductsTable = () => {
         search={false}
         actionRef={actionRef}
         request={async (params, sort) =>
-          await requestList('/api/project/projects/', params, sort, { status }, searchKey)
+          await requestList('/api/project/projects-list/', params, sort, { status }, searchKey)
         }
         columns={[
           {
@@ -169,9 +116,8 @@ const ProductsTable = () => {
             sorter: true,
             render: (_, record) => (
               <Open
-                onClick={() => handleUpdate(record as ProjectFormValues)}
+                onClick={() => handleUpdate(record as ProjectMangerFormValues)}
                 record={record.name}
-                color="blue"
               />
             ),
           },
@@ -181,75 +127,11 @@ const ProductsTable = () => {
             valueType: 'view_task',
             render: (_, record) => (
               <Open
-                onClick={() => handleViewTasks(record as ProjectFormValues)}
+                onClick={() => handleViewTasks(record as ProjectMangerFormValues)}
                 record={'View Tasks'}
                 color="green"
               />
             ),
-          },
-          {
-            title: 'Manager',
-            dataIndex: 'manager',
-            valueType: 'text',
-            render: (_, record) => <div>{record.manager?.full_name}</div>,
-          },
-          {
-            title: 'Status',
-            dataIndex: 'status',
-            valueType: 'text',
-            sorter: true,
-            render: (_, record) => <StatusTag record={record.status} />,
-          },
-          {
-            title: 'Priority',
-            dataIndex: 'priority',
-            valueType: 'text',
-            sorter: true,
-            render: (_, record) => <PriorityTag record={record.priority} />,
-          },
-          {
-            title: 'Risk Level',
-            dataIndex: 'risk_level',
-            valueType: 'text',
-            sorter: true,
-            render: (_, record) => <PriorityTag record={record.risk_level} />,
-          },
-          {
-            title: 'Budget',
-            dataIndex: 'budget',
-            valueType: 'money', // Assumes monetary values
-            sorter: true,
-          },
-          {
-            title: 'Spent',
-            dataIndex: 'spent',
-            valueType: 'money',
-            sorter: true,
-          },
-
-          {
-            title: 'Description',
-            dataIndex: 'description',
-            valueType: 'text',
-            sorter: true,
-          },
-          {
-            title: 'Start Date',
-            dataIndex: 'start_date',
-            valueType: 'date',
-            sorter: true,
-          },
-          {
-            title: 'End Date',
-            dataIndex: 'end_date',
-            valueType: 'date',
-            sorter: true,
-          },
-          {
-            title: 'Tag',
-            dataIndex: 'tag',
-            valueType: 'text',
-            sorter: false,
           },
           {
             title: 'Backend Percentage',
@@ -276,6 +158,53 @@ const ProductsTable = () => {
             dataIndex: 'launch_percentage',
             valueType: 'percent',
           },
+          {
+            title: 'Status',
+            dataIndex: 'status',
+            valueType: 'text',
+            sorter: true,
+            render: (_, record) => <StatusTag record={record.status} />,
+          },
+          {
+            title: 'Priority',
+            dataIndex: 'priority',
+            valueType: 'text',
+            sorter: true,
+            render: (_, record) => <PriorityTag record={record.priority} />,
+          },
+          {
+            title: 'Risk Level',
+            dataIndex: 'risk_level',
+            valueType: 'text',
+            sorter: true,
+            render: (_, record) => <PriorityTag record={record.risk_level} />,
+          },
+
+          {
+            title: 'Description',
+            dataIndex: 'description',
+            valueType: 'text',
+            sorter: true,
+          },
+          {
+            title: 'Start Date',
+            dataIndex: 'start_date',
+            valueType: 'date',
+            sorter: true,
+          },
+          {
+            title: 'End Date',
+            dataIndex: 'end_date',
+            valueType: 'date',
+            sorter: true,
+          },
+          {
+            title: 'Tag',
+            dataIndex: 'tag',
+            valueType: 'text',
+            sorter: false,
+          },
+
           {
             title: 'Created At',
             dataIndex: 'created_at',
@@ -305,27 +234,6 @@ const ProductsTable = () => {
         ]}
         pagination={{
           showQuickJumper: true,
-        }}
-        toolBarRender={() => [
-          <Button
-            key="primary"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
-          />,
-          <Button
-            disabled={selectedIds.length === 0}
-            key="danger"
-            type="primary"
-            danger
-            onClick={() => handleBulkDelete()}
-            icon={<DeleteOutlined />}
-          />,
-        ]}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedIds(selectedRows.map((row) => row.id));
-          },
         }}
       />
       <EntryForm

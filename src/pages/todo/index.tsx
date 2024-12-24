@@ -145,7 +145,7 @@ const TodoTable = () => {
               <Select
                 showSearch
                 allowClear
-                placeholder="Select a Project"
+                placeholder="Select a Stage"
                 optionFilterProp="label"
                 onChange={handleStageChange}
                 options={[
@@ -215,7 +215,6 @@ const TodoTable = () => {
             title: 'Project',
             dataIndex: 'project_name',
             valueType: 'text',
-            sorter: true,
             render: (_, record) => <div>{record.project?.name}</div>,
           },
 
@@ -229,7 +228,6 @@ const TodoTable = () => {
             title: 'Manager',
             dataIndex: 'manager',
             valueType: 'text',
-            sorter: true,
             render: (_, record) => <div>{record.created_by?.full_name}</div>,
           },
           {
@@ -257,7 +255,10 @@ const TodoTable = () => {
           {
             title: 'Remaining Time',
             dataIndex: 'due_at',
-            renderText: (value) => {
+            renderText: (value, record) => {
+              if(record.status === 'done'){
+                return <Tag>Done</Tag>
+              }
               const now = dayjs();
               const due = dayjs(value);
               const diff = due.diff(now);

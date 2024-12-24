@@ -1,4 +1,5 @@
-﻿import route from "mock/route";
+﻿import access from "@/access";
+import route from "mock/route";
 
 /**
  * @name umi 的路由配置
@@ -28,43 +29,60 @@ export default [
     path: '/project',
     name: 'Project',
     icon: 'appstore',
+    access: 'canAdmin',
     component: './project',
+  },
+  {
+    path: '/manager/project',
+    name: 'Project',
+    icon: 'appstore',
+    access: 'canManager',
+    component: './project-manager',
+  },
+  {
+    path: '/task/manager',
+    name: 'Task',
+    icon: 'snippets',
+    access: 'canManager',
+    component: './task-manager',
+    routes: [
+      {
+        path: '/task/manager/project/:id',
+        name: 'Task',
+        component: './task-manager',
+        hideInMenu: true, 
+      },
+    ],
   },
   {
     path: '/task',
     name: 'Task',
     icon: 'snippets',
+    access: 'canAdmin',
     component: './task',
+    routes: [
+      {
+        path: '/task/project/:id',
+        name: 'Task',
+        component: './task',
+        hideInMenu: true, 
+      },
+    ],
   },
   {
     path: '/user',
     name: 'User',
     icon: 'User',
+    access: 'canAdmin',
     component: './user',
   },
   {
     path: '/todo',
     name: 'Todo',
     icon: 'diff',
+    access: 'canDeveloper',
     component: './todo',
   },
-  // {
-  //   path: '/admin',
-  //   name: 'admin',
-  //   icon: 'crown',
-  //   access: 'canAdmin',
-  //   routes: [
-  //     {
-  //       path: '/admin',
-  //       redirect: '/admin/sub-page',
-  //     },
-  //     {
-  //       path: '/admin/sub-page',
-  //       name: 'sub-page',
-  //       component: './Admin',
-  //     },
-  //   ],
-  // },
   {
     path: '/',
     redirect: '/project',

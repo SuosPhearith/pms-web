@@ -42,6 +42,15 @@ export interface ProjectFormValues {
   tag?: string; 
   manager_id : number;
   manager: User; 
+  dev_ids?: number[]
+}
+export interface ProjectMangerFormValues {
+  id?: number;
+  backend_percentage: number;
+  frontend_percentage: number;
+  deploy_percentage: number;
+  testing_percentage: number;
+  launch_percentage: number;
 }
 
 export interface TaskFormValues {
