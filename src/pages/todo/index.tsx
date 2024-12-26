@@ -123,7 +123,7 @@ const TodoTable = () => {
         defaultSize="large"
         headerTitle={
           <div>
-            <Space>
+            <Space style={{display: 'flex', flexWrap: 'wrap'}}>
               <Search
                 placeholder="Search Task"
                 allowClear
@@ -185,6 +185,29 @@ const TodoTable = () => {
             valueType: 'text',
             render: (_, __, index) => <div>{index + 1}</div>,
           },
+          
+          {
+            title: 'Task',
+            dataIndex: 'name',
+            valueType: 'text',
+            fixed: true,
+            sorter: true,
+          },
+          {
+            title: 'Status',
+            dataIndex: 'status',
+            valueType: 'text',
+            sorter: true,
+            render: (_, record) => (
+              <Flex>
+                <Radio.Group
+                  options={plainOptions}
+                  onChange={(e) => onChangeStatus(e, record.id)}
+                  value={record.status}
+                />
+              </Flex>
+            ),
+          },
           {
             title: 'Remark',
             dataIndex: 'remark',
@@ -206,12 +229,6 @@ const TodoTable = () => {
             ),
           },
           {
-            title: 'Task',
-            dataIndex: 'name',
-            valueType: 'text',
-            sorter: true,
-          },
-          {
             title: 'Project',
             dataIndex: 'project_name',
             valueType: 'text',
@@ -230,21 +247,7 @@ const TodoTable = () => {
             valueType: 'text',
             render: (_, record) => <div>{record.created_by?.full_name}</div>,
           },
-          {
-            title: 'Status',
-            dataIndex: 'status',
-            valueType: 'text',
-            sorter: true,
-            render: (_, record) => (
-              <Flex>
-                <Radio.Group
-                  options={plainOptions}
-                  onChange={(e) => onChangeStatus(e, record.id)}
-                  value={record.status}
-                />
-              </Flex>
-            ),
-          },
+          
           {
             title: 'Due At',
             dataIndex: 'due_at',

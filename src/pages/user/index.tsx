@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { ActionType, ModalForm, ProFormText, ProTable } from '@ant-design/pro-components';
-import { Button, Col, Input, Row } from 'antd';
-import { DeleteOutlined, PlusOutlined, UnlockOutlined } from '@ant-design/icons';
+import { Button, Col, Input, Radio, Row, Space } from 'antd';
+import {
+  CheckCircleOutlined,
+  PlusOutlined,
+  StopOutlined,
+  UnlockOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
 import { requestList } from '@/services/api/request';
 import API, { UserFormValues, UserResetPassword } from '@/services/pms/typings';
-import { createUser, deleteBulkProject, resetUser, updateUser } from '@/services/pms/api';
+import { banUser, createUser, resetUser, updateUser } from '@/services/pms/api';
 import { Modal, message } from 'antd';
 import Open from '@/components/Usable/Open';
 import EntryForm, { style } from './EntryForm';
+import { RadioChangeEvent } from 'antd/lib';
 
 const UserTable = () => {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [role, setRole] = useState<string>();
   const [openReset, setOpenReset] = useState<{
     open: boolean;
     id: number;
@@ -60,17 +67,16 @@ const UserTable = () => {
     });
   };
 
-  const handleBulkDelete = async () => {
+  const handleToggleBadAccount = async (id: number, is_active: boolean) => {
     Modal.confirm({
       title: 'Please Confirm',
-      content: 'Are you sure you want to delete this project?',
+      content: `Are you sure you want to ${is_active ? 'ban' : 'active'} this user?`,
       okText: 'Yes',
       cancelText: 'No',
       onOk: async () => {
         try {
-          await deleteBulkProject({ ids: selectedIds });
-          setSelectedIds([]);
-          message.success('Project created successfully!');
+          await banUser({ userId: id });
+          message.success('Updated successfully!');
           handleCancel();
           actionRef.current?.reload();
         } catch (error) {
@@ -78,7 +84,7 @@ const UserTable = () => {
         }
       },
       onCancel: () => {
-        message.info('Project delete canceled.');
+        // message.info('Project delete canceled.');
       },
     });
   };
@@ -97,9 +103,9 @@ const UserTable = () => {
       cancelText: 'No',
       onOk: async () => {
         try {
-          await resetUser({...value, id: openReset.id});
+          await resetUser({ ...value, id: openReset.id });
           message.success('Reset successfully!');
-          setOpenReset({open : false, id : 0});
+          setOpenReset({ open: false, id: 0 });
           actionRef.current?.reload();
         } catch (error) {
           message.error('Failed. Please try again.');
@@ -112,7 +118,7 @@ const UserTable = () => {
   };
 
   const handleOpenReset = (id: number) => {
-    setOpenReset({open: true, id})
+    setOpenReset({ open: true, id });
   };
 
   const handleUpdate = (record: UserFormValues) => {
@@ -123,27 +129,48 @@ const UserTable = () => {
     setIsModalOpen(true);
   };
 
+  const handleRoleChange = (e: RadioChangeEvent) => {
+    setRole(e.target.value);
+    actionRef.current?.reload();
+  };
+
   return (
     <>
       <ProTable
         scroll={{ x: 'max-content' }}
         defaultSize="large"
         headerTitle={
-          <Search
-            placeholder="Search users"
-            allowClear
-            onSearch={(value) => {
-              setSearchKey(value);
-              actionRef.current?.reload();
-            }}
-            style={{ width: 200 }}
-          />
+          <div>
+            <Space style={{display: 'flex', flexWrap: 'wrap'}}>
+              <Search
+                placeholder="Search users"
+                allowClear
+                onSearch={(value) => {
+                  setSearchKey(value);
+                  actionRef.current?.reload();
+                }}
+                style={{ width: 200 }}
+              />
+              <Radio.Group value={role} onChange={handleRoleChange}>
+                <Radio.Button value="">All</Radio.Button>
+                <Radio.Button value="ADMIN">Admin</Radio.Button>
+                <Radio.Button value="MANAGER">Manager</Radio.Button>
+                <Radio.Button value="DEVELOPER">Develpoer</Radio.Button>
+              </Radio.Group>
+            </Space>
+          </div>
         }
         rowKey="id"
         search={false}
         actionRef={actionRef}
-        request={async (params, sort, filter) =>
-          await requestList('/api/user/users-view/', params, sort, filter, searchKey)
+        request={async (params, sort) =>
+          await requestList(
+            '/api/user/users-view/',
+            params,
+            sort,
+            { account__role: role },
+            searchKey,
+          )
         }
         columns={[
           {
@@ -157,10 +184,21 @@ const UserTable = () => {
             dataIndex: 'full_name',
             valueType: 'text',
             render: (_, record) => (
-              <Open
-                onClick={() => handleUpdate(record as UserFormValues)}
-                record={record.full_name}
-              />
+              <Space>
+                {!record?.is_active ? (
+                  <WarningOutlined
+                    title="This User has been ban!"
+                    style={{ color: 'red', cursor: 'pointer' }}
+                  />
+                ) : (
+                  ''
+                )}
+                <Open
+                  onClick={() => handleUpdate(record as UserFormValues)}
+                  record={record.full_name}
+                  color={record?.is_active ? 'blue' : 'red'}
+                />
+              </Space>
             ),
           },
           {
@@ -190,13 +228,27 @@ const UserTable = () => {
             title: 'Action',
             dataIndex: '',
             render: (_, record) => (
-              <div>
+              <Space>
+                {!record?.is_active ? (
+                  <CheckCircleOutlined
+                    title="Active account"
+                    style={{ cursor: 'pointer', color: 'blue' }}
+                    onClick={() => handleToggleBadAccount(record.id, record?.is_active)}
+                  />
+                ) : (
+                  <StopOutlined
+                    style={{ cursor: 'pointer', color: 'red' }}
+                    title="Ban account"
+                    onClick={() => handleToggleBadAccount(record.id, record?.is_active)}
+                  />
+                )}
+
                 <UnlockOutlined
                   style={{ cursor: 'pointer', color: 'blue' }}
                   title="Reset password"
                   onClick={() => handleOpenReset(record.id)}
                 />
-              </div>
+              </Space>
             ),
           },
         ]}
@@ -210,20 +262,7 @@ const UserTable = () => {
             icon={<PlusOutlined />}
             onClick={() => setIsModalOpen(true)}
           />,
-          <Button
-            disabled={selectedIds.length === 0}
-            key="danger"
-            type="primary"
-            danger
-            onClick={() => handleBulkDelete()}
-            icon={<DeleteOutlined />}
-          />,
         ]}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedIds(selectedRows.map((row) => row.id));
-          },
-        }}
       />
       <EntryForm
         isModalOpen={isModalOpen}
@@ -236,7 +275,7 @@ const UserTable = () => {
         open={openReset.open}
         modalProps={{
           destroyOnClose: true,
-          onCancel: () => setOpenReset({open : false, id : 0}),
+          onCancel: () => setOpenReset({ open: false, id: 0 }),
         }}
         onFinish={async (values) => {
           handleResetPassword(values);

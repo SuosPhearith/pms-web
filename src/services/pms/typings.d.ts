@@ -8,6 +8,7 @@ export type LoginPayload = {
 export type LoginResult = {
   access: string;
   refresh: string;
+  role: string;
   status?: string;
 };
 
@@ -22,6 +23,20 @@ export type CurrentUser = {
   role: 'ADMIN' | 'USER' | 'MANAGER'; 
   avatar: string;
 };
+
+export interface UpdateProfileData  {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  name: string;
+}
+
+export interface UpdatePassword  {
+  current_password : string;
+  new_password : string;
+  confirm_password : string;
+}
 
 // :::::::::::: End Auth ::::::::::::
 
@@ -79,6 +94,10 @@ export interface UserResetPassword {
   id : number;
   password : string;
   password2: string;
+}
+
+export interface UserBan {
+  userId : number;
 }
 
 export interface TodoUpdateStatus {

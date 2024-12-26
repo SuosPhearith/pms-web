@@ -76,7 +76,7 @@ const ProductsTable = () => {
         defaultSize="large"
         headerTitle={
           <div>
-            <Space>
+            <Space style={{display: 'flex', flexWrap: 'wrap'}}>
               <Search
                 placeholder="Search products"
                 allowClear
@@ -113,6 +113,7 @@ const ProductsTable = () => {
             title: 'Name',
             dataIndex: 'name',
             valueType: 'text',
+            fixed: true,
             sorter: true,
             render: (_, record) => (
               <Open

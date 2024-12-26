@@ -129,7 +129,7 @@ const ProductsTable = () => {
         defaultSize="large"
         headerTitle={
           <div>
-            <Space>
+            <Space style={{display: 'flex', flexWrap: 'wrap'}}>
               <Search
                 placeholder="Search products"
                 allowClear
@@ -160,6 +160,8 @@ const ProductsTable = () => {
             title: '#',
             dataIndex: '#',
             valueType: 'text',
+            width: 40,
+            fixed: true,
             render: (_, __, index) => <div>{index + 1}</div>,
           },
           {
@@ -167,6 +169,7 @@ const ProductsTable = () => {
             dataIndex: 'name',
             valueType: 'text',
             sorter: true,
+            fixed: true,
             render: (_, record) => (
               <Open
                 onClick={() => handleUpdate(record as ProjectFormValues)}

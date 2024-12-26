@@ -160,7 +160,7 @@ const TasksTable = () => {
         defaultSize="large"
         headerTitle={
           <div>
-            <Space>
+            <Space style={{display: 'flex', flexWrap: 'wrap'}}>
               <Search
                 placeholder="Search Task"
                 allowClear
@@ -224,6 +224,8 @@ const TasksTable = () => {
             title: '#',
             dataIndex: '#',
             valueType: 'text',
+            width: 30,
+            fixed: true,
             render: (_, __, index) => <div>{index + 1}</div>,
           },
           {
@@ -231,6 +233,7 @@ const TasksTable = () => {
             dataIndex: 'name',
             valueType: 'text',
             sorter: true,
+            fixed: true,
             render: (_, record) => (
               <Open
                 onClick={() => handleUpdate(record as ProjectFormValues)}

@@ -72,7 +72,7 @@ export default [
   {
     path: '/user',
     name: 'User',
-    icon: 'User',
+    icon: 'team',
     access: 'canAdmin',
     component: './user',
   },
@@ -82,6 +82,12 @@ export default [
     icon: 'diff',
     access: 'canDeveloper',
     component: './todo',
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    icon: 'User',
+    component: './profile',
   },
   {
     path: '/',

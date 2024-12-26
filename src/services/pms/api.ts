@@ -21,6 +21,22 @@ export async function currentUser(options?: { [key: string]: any }) {
   });
 }
 
+export async function updateProfile(body: API.UpdateProfileData, options?: { [key: string]: any }) {
+  return request<API.CurrentUser>('/api/auth/profile/', {
+    method: 'PUT',
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function updatePassword(body: API.UpdatePassword, options?: { [key: string]: any }) {
+  return request<API.CurrentUser>('/api/auth/profile/', {
+    method: 'POST',
+    data: body,
+    ...(options || {}),
+  });
+}
+
 // :::::::::::: End Auth ::::::::::::
 
 // :::::::::::::: Project ::::::::::::::
@@ -101,6 +117,17 @@ export async function updateUser(body: API.UserFormValues, options?: { [key: str
 export async function resetUser(body: API.UserResetPassword, options?: { [key: string]: any }) {
   return request<any>('/api/user/update/', {
     method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function banUser(body: API.UserBan, options?: { [key: string]: any }) {
+  return request<any>('/api/auth/ban/', {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
